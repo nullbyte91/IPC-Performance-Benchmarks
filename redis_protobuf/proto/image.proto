@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package trodes.proto;
+
+message Image {
+    int32 rows = 1;
+    int32 cols = 2;
+    int32 elt_type = 3;
+    int32 elt_size = 4;
+    bytes mat_data = 5;
+}
+
