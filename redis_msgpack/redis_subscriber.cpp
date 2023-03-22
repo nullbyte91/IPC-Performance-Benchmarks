@@ -57,6 +57,8 @@ int main() {
                 // Process the received image data
                 global_count += 1;
                 std::cout << "Received image: " << img_data.rows << " * " << img_data.cols << ": " << global_count << std::endl;
+                cv::Mat img =  cv::Mat(img_data.rows, img_data.cols,
+                            img_data.type, img_data.matrix.data());
                 // cv::imshow(
                 //     "Result",
                 //     cv::Mat(img_data.rows, img_data.cols,
