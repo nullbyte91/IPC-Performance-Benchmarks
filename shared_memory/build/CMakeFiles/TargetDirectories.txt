@@ -1,0 +1,4 @@
+/home/nullbyte/Desktop/mygit/IPC-Performance-Benchmarks/shared_memory/build/CMakeFiles/shared_memory_subscriber.dir
+/home/nullbyte/Desktop/mygit/IPC-Performance-Benchmarks/shared_memory/build/CMakeFiles/shared_memory_publisher.dir
+/home/nullbyte/Desktop/mygit/IPC-Performance-Benchmarks/shared_memory/build/CMakeFiles/edit_cache.dir
+/home/nullbyte/Desktop/mygit/IPC-Performance-Benchmarks/shared_memory/build/CMakeFiles/rebuild_cache.dir
