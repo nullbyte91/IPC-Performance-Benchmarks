@@ -1,12 +1,15 @@
 #include <iostream>
 #include <hiredis/hiredis.h>
 #include <opencv2/opencv.hpp>
-
 #include "image.pb.h"
 
 int main() {
     int global_count{0};
+    
+    // Connect to the Redis server
     redisContext *c = redisConnect("127.0.0.1", 6379);
+
+    // Check if the connection to the Redis server is successful
     if (c == NULL || c->err) {
         if (c) {
             std::cerr << "Error connecting to Redis: " << c->errstr << std::endl;
@@ -17,15 +20,19 @@ int main() {
         return EXIT_FAILURE;
     }
 
+    // Subscribe to the Redis channel
     redisReply *reply = (redisReply *)redisCommand(c, "SUBSCRIBE image_channel");
     freeReplyObject(reply);
 
+    // Listen for incoming messages
     while (redisGetReply(c, (void **)&reply) == REDIS_OK) {
+        // Check for errors in receiving messages
         if (reply == NULL || reply->type == REDIS_REPLY_ERROR) {
             std::cerr << "Error receiving message from Redis: " << c->errstr << std::endl;
             break;
         }
 
+        // Check if the reply contains a message
         if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3 &&
             std::string(reply->element[0]->str) == "message") {
             // Deserialize the message using protobuf
@@ -39,7 +46,8 @@ int main() {
                 memcpy(img.data, serializableMat.mat_data().data(), dataSize);
                 global_count += 1;
                 std::cout << "Received image: " << img.rows << " * " << img.cols << ": " << global_count << std::endl;
-                // Display the image
+
+                // Display the image (uncomment the lines below to display the image)
                 // cv::imshow("Image", img);
                 // cv::waitKey(1);
             } catch (const std::exception &e) {
@@ -47,9 +55,11 @@ int main() {
             }
         }
 
+        // Free the reply object
         freeReplyObject(reply);
     }
 
+    // Free the Redis connection and exit successfully
     redisFree(c);
     return EXIT_SUCCESS;
 }
