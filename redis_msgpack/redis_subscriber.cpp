@@ -10,9 +10,9 @@
 
 struct Image {
     std::vector<uchar> matrix;
-    int rows = 0;
-    int cols = 0;
-    int type = 0;
+    int rows{0};
+    int cols{0};
+    int type{0};
     MSGPACK_DEFINE(matrix, rows, cols, type);
 };
 
