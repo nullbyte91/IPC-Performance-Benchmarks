@@ -1,0 +1,145 @@
+#ifndef ROS2_PUBLISHER_HPP
+#define ROS2_PUBLISHER_HPP
+
+#include <chrono>
+#include <memory>
+#include <typeinfo>
+
+#include <rclcpp/rclcpp.hpp>
+#include "sensor_msgs/msg/image.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
+#include "std_msgs/msg/float32.hpp"
+#include "std_msgs/msg/int32.hpp"
+#include "std_msgs/msg/string.hpp"
+
+using namespace std::chrono_literals;
+
+// ROS2 std_msg types
+using String = std_msgs::msg::String;
+using Int32 = std_msgs::msg::Int32;
+using Float32 = std_msgs::msg::Float32;
+using Image = sensor_msgs::msg::Image;
+
+inline std::string mat_type2encoding(int mat_type)
+{
+    switch (mat_type) {
+        case CV_8UC1:
+        return "mono8";
+        case CV_8UC3:
+        return "bgr8";
+        case CV_16SC1:
+        return "mono16";
+        case CV_8UC4:
+        return "rgba8";
+        default:
+        throw std::runtime_error("Unsupported encoding type");
+    }
+}
+
+template <typename T>
+class PublisherNode : public rclcpp::Node
+{
+public:
+    PublisherNode(const std::string& topic)
+        : Node("PublisherNode")
+    {
+        publisher_ = this->create_publisher<T>(topic, 1000);
+        timer_ = this->create_wall_timer(30ns, [this]() {
+            publishMessage();
+        });
+    }
+
+private:
+    size_t count_ = 0;
+    typename rclcpp::Publisher<T>::SharedPtr publisher_;
+    rclcpp::TimerBase::SharedPtr timer_;
+    cv::Mat frame_1 = cv::Mat::eye(480, 640, CV_8UC3);
+    cv::Mat frame_2 = cv::Mat::eye(1280, 960, CV_8UC3);
+    cv::Mat frame_3 = cv::Mat::eye(1800, 1200, CV_8UC3);
+    cv::Mat frame_4 = cv::Mat::eye(2100, 1500, CV_8UC3);
+    template <typename U = T, std::enable_if_t<std::is_same<U, String>::value, int> = 0>
+    void publishMessage()
+    {
+        RCLCPP_INFO(this->get_logger(), "Publishing string:");
+        auto message = T();
+        message.data = "Hello world";
+        publisher_->publish(message);
+        
+    }
+
+    template <typename U = T, std::enable_if_t<std::is_same<U, Int32>::value, int> = 0>
+    void publishMessage()
+    {
+        RCLCPP_INFO(this->get_logger(), "Publishing int: ");
+        auto message = T();
+        message.data = 60000;
+        publisher_->publish(message);
+    }
+
+    template <typename U = T, std::enable_if_t<std::is_same<U, Float32>::value, int> = 0>
+    void publishMessage()
+    {
+        RCLCPP_INFO(this->get_logger(), "Publishing int: ");
+        auto message = T();
+        message.data = 160000;
+        publisher_->publish(message);
+    }
+
+    template <typename U = T, std::enable_if_t<std::is_same<U, Image>::value, int> = 0>
+    void publishMessage()
+    {
+        RCLCPP_INFO(this->get_logger(), "Publishing Image: 480 * 640");
+        sensor_msgs::msg::Image::UniquePtr msg(new sensor_msgs::msg::Image());
+        // Pack the OpenCV image into the ROS image.
+        msg->header.frame_id = "camera_frame";
+        msg->height = frame_1.rows;
+        msg->width = frame_1.cols;
+        msg->encoding = mat_type2encoding(frame_1.type());
+        msg->is_bigendian = false;
+        msg->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_1.step);
+        msg->data.assign(frame_1.datastart, frame_1.dataend);
+        publisher_->publish(std::move(msg));
+        
+        RCLCPP_INFO(this->get_logger(), "Publishing Image: 1280 * 960");
+        sensor_msgs::msg::Image::UniquePtr msg1(new sensor_msgs::msg::Image());
+        msg1->header.frame_id = "camera_frame";
+        msg1->height = frame_2.rows;
+        msg1->width = frame_2.cols;
+        msg1->encoding = mat_type2encoding(frame_2.type());
+        msg1->is_bigendian = false;
+        msg1->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_2.step);
+        msg1->data.assign(frame_2.datastart, frame_2.dataend);
+        publisher_->publish(std::move(msg1));
+
+        RCLCPP_INFO(this->get_logger(), "Publishing Image: 1800 * 1200");
+        sensor_msgs::msg::Image::UniquePtr msg3(new sensor_msgs::msg::Image());
+        msg3->header.frame_id = "camera_frame";
+        msg3->height = frame_3.rows;
+        msg3->width = frame_3.cols;
+        msg3->encoding = mat_type2encoding(frame_3.type());
+        msg3->is_bigendian = false;
+        msg3->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_3.step);
+        msg3->data.assign(frame_3.datastart, frame_3.dataend);
+        publisher_->publish(std::move(msg3));
+
+        RCLCPP_INFO(this->get_logger(), "Publishing Image: 2100 * 1500");
+        sensor_msgs::msg::Image::UniquePtr msg4(new sensor_msgs::msg::Image());
+        msg4->header.frame_id = "camera_frame";
+        msg4->height = frame_4.rows;
+        msg4->width = frame_4.cols;
+        msg4->encoding = mat_type2encoding(frame_4.type());
+        msg4->is_bigendian = false;
+        msg4->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_4.step);
+        msg4->data.assign(frame_4.datastart, frame_4.dataend);
+        publisher_->publish(std::move(msg4));
+        count_ += 4;
+        if (count_ == 2000)
+        {
+            exit(1);
+        }
+    }    
+};
+
+#endif //ROS2_PUBLISHER_HPP
+
