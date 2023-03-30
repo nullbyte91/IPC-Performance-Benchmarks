@@ -1,0 +1,5 @@
+module ImageTransfer {
+  interface ImageService {
+    boolean send_image(in string image_data, in long width, in long height, in long type);
+  };
+};
