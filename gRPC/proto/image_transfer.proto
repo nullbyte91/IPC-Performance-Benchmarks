@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package image_transfer;
+
+service ImageTransfer {
+    rpc SendImage (ImageRequest) returns (ImageResponse);
+}
+
+message ImageRequest {
+    bytes image_data = 1;
+    int32 width = 2;
+    int32 height = 3;
+    int32 type = 4;
+}
+
+message ImageResponse {
+    string message = 1;
+}
