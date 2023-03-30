@@ -164,6 +164,11 @@ cmake ../../
 make -j12 
 sudo make install
 ```
+
+```bash
+# CORBA
+omniidl -bcxx ImageTransfer.idl
+```
 ## License
 This repository is released under the MIT License.
 
