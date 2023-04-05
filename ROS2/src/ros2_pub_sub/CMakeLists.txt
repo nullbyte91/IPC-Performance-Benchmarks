@@ -85,12 +85,32 @@ target_link_libraries(test_image_sub
   opencv_highgui
   opencv_imgproc)
 
+add_executable(test_pointcloud_pub src/test_pc_pub.cpp)
+target_link_libraries(test_pointcloud_pub
+  ${builtin_interfaces_TARGETS}
+  ${sensor_msgs_TARGETS}
+  rclcpp::rclcpp
+  opencv_core
+  opencv_highgui
+  opencv_imgproc)
+
+add_executable(test_pointcloud_sub src/test_pc_sub.cpp)
+target_link_libraries(test_pointcloud_sub
+  ${builtin_interfaces_TARGETS}
+  ${sensor_msgs_TARGETS}
+  rclcpp::rclcpp
+  opencv_core
+  opencv_highgui
+  opencv_imgproc)
+  
 install(TARGETS
   test_string
   test_int32
   test_float32
   test_image_pub 
   test_image_sub
+  test_pointcloud_pub
+  test_pointcloud_sub
   DESTINATION lib/${PROJECT_NAME}
 )
 

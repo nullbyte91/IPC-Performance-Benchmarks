@@ -4,14 +4,18 @@
 #include <chrono>
 #include <memory>
 #include <typeinfo>
+#include <random>
 
 #include <rclcpp/rclcpp.hpp>
-#include "sensor_msgs/msg/image.hpp"
+
 #include "opencv2/highgui/highgui.hpp"
 
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/point_cloud2_iterator.hpp"
 
 using namespace std::chrono_literals;
 
@@ -20,6 +24,7 @@ using String = std_msgs::msg::String;
 using Int32 = std_msgs::msg::Int32;
 using Float32 = std_msgs::msg::Float32;
 using Image = sensor_msgs::msg::Image;
+using PointCloud = sensor_msgs::msg::PointCloud2;
 
 inline std::string mat_type2encoding(int mat_type)
 {
@@ -58,6 +63,7 @@ private:
     cv::Mat frame_2 = cv::Mat::eye(1280, 960, CV_8UC3);
     cv::Mat frame_3 = cv::Mat::eye(1800, 1200, CV_8UC3);
     cv::Mat frame_4 = cv::Mat::eye(2100, 1500, CV_8UC3);
+
     template <typename U = T, std::enable_if_t<std::is_same<U, String>::value, int> = 0>
     void publishMessage()
     {
@@ -134,11 +140,47 @@ private:
         msg4->data.assign(frame_4.datastart, frame_4.dataend);
         publisher_->publish(std::move(msg4));
         count_ += 4;
-        if (count_ == 2000)
+        if (count_ == 5000)
         {
-            exit(1);
+            std::cout << "Stopping timer" << std::endl;
+            timer_->cancel();
         }
-    }    
+    }
+
+    template <typename U = T, std::enable_if_t<std::is_same<U, PointCloud>::value, int> = 0>
+    void publishMessage()
+    {
+        sensor_msgs::msg::PointCloud2 pointcloud;
+        pointcloud.header.stamp = this->now();
+        pointcloud.header.frame_id = "pointcloud_frame";
+        pointcloud.height = 1;
+        pointcloud.width = 16000;
+        pointcloud.is_dense = false;
+        pointcloud.is_bigendian = false;
+        sensor_msgs::PointCloud2Modifier modifier(pointcloud);
+        modifier.setPointCloud2FieldsByString(1, "xyz");
+
+        std::default_random_engine generator;
+        std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
+        sensor_msgs::PointCloud2Iterator<float> iter_x(pointcloud, "x");
+        sensor_msgs::PointCloud2Iterator<float> iter_y(pointcloud, "y");
+        sensor_msgs::PointCloud2Iterator<float> iter_z(pointcloud, "z");
+        for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
+        *iter_x = distribution(generator);
+        *iter_y = distribution(generator);
+        *iter_z = distribution(generator);
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Publishing point cloud with %d points", pointcloud.width);
+        publisher_->publish(std::move(pointcloud));        
+        count_ += 1;
+        if (count_ == 5000)
+        {
+            std::cout << "Stopping timer" << std::endl;
+            timer_->cancel();            
+        }
+    }
 };
 
 #endif //ROS2_PUBLISHER_HPP
