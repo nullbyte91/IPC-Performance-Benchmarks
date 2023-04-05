@@ -17,6 +17,8 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 
+#include "policy_map.hpp"
+
 using namespace std::chrono_literals;
 
 // ROS2 std_msg types
@@ -25,6 +27,7 @@ using Int32 = std_msgs::msg::Int32;
 using Float32 = std_msgs::msg::Float32;
 using Image = sensor_msgs::msg::Image;
 using PointCloud = sensor_msgs::msg::PointCloud2;
+
 
 inline std::string mat_type2encoding(int mat_type)
 {
@@ -49,13 +52,31 @@ public:
     PublisherNode(const std::string& topic)
         : Node("PublisherNode")
     {
-        publisher_ = this->create_publisher<T>(topic, 1000);
+        auto history = name_to_history_policy_map.find("keep_last");
+        history_policy_ = history->second;
+        auto reliability = name_to_reliability_policy_map.find("reliable");
+        reliability_policy_ = reliability->second;
+        auto qos = rclcpp::QoS(
+        rclcpp::QoSInitialization(
+        // Depth represents how many messages to store in history when the
+        // history policy is KEEP_LAST.
+        history_policy_,
+        depth_
+        ));
+        qos.reliability(reliability_policy_);
+
+
+        publisher_ = this->create_publisher<T>(topic, qos);
         timer_ = this->create_wall_timer(30ns, [this]() {
             publishMessage();
         });
     }
 
 private:
+    // ROS Parameter
+    rmw_qos_reliability_policy_t reliability_policy_;
+    rmw_qos_history_policy_t history_policy_;
+    size_t depth_ = 1000;
     size_t count_ = 0;
     typename rclcpp::Publisher<T>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -129,7 +150,7 @@ private:
         msg3->data.assign(frame_3.datastart, frame_3.dataend);
         publisher_->publish(std::move(msg3));
 
-        RCLCPP_INFO(this->get_logger(), "Publishing Image: 2100 * 1500");
+        RCLCPP_INFO(this->get_logger(), "%d Publishing Image: 2100 * 1500", count_);
         sensor_msgs::msg::Image::UniquePtr msg4(new sensor_msgs::msg::Image());
         msg4->header.frame_id = "camera_frame";
         msg4->height = frame_4.rows;
