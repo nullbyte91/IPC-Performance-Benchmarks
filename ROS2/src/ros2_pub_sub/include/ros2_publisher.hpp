@@ -116,7 +116,7 @@ private:
     template <typename U = T, std::enable_if_t<std::is_same<U, Image>::value, int> = 0>
     void publishMessage()
     {
-        RCLCPP_INFO(this->get_logger(), "Publishing Image: 480 * 640");
+        RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 480 * 640", count_++);
         sensor_msgs::msg::Image::UniquePtr msg(new sensor_msgs::msg::Image());
         // Pack the OpenCV image into the ROS image.
         msg->header.frame_id = "camera_frame";
@@ -128,7 +128,7 @@ private:
         msg->data.assign(frame_1.datastart, frame_1.dataend);
         publisher_->publish(std::move(msg));
         
-        RCLCPP_INFO(this->get_logger(), "Publishing Image: 1280 * 960");
+        RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 1280 * 960", count_++);
         sensor_msgs::msg::Image::UniquePtr msg1(new sensor_msgs::msg::Image());
         msg1->header.frame_id = "camera_frame";
         msg1->height = frame_2.rows;
@@ -139,7 +139,7 @@ private:
         msg1->data.assign(frame_2.datastart, frame_2.dataend);
         publisher_->publish(std::move(msg1));
 
-        RCLCPP_INFO(this->get_logger(), "Publishing Image: 1800 * 1200");
+        RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 1800 * 1200", count_++);
         sensor_msgs::msg::Image::UniquePtr msg3(new sensor_msgs::msg::Image());
         msg3->header.frame_id = "camera_frame";
         msg3->height = frame_3.rows;
@@ -150,7 +150,7 @@ private:
         msg3->data.assign(frame_3.datastart, frame_3.dataend);
         publisher_->publish(std::move(msg3));
 
-        RCLCPP_INFO(this->get_logger(), "%d Publishing Image: 2100 * 1500", count_);
+        RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 2100 * 1500", count_++);
         sensor_msgs::msg::Image::UniquePtr msg4(new sensor_msgs::msg::Image());
         msg4->header.frame_id = "camera_frame";
         msg4->height = frame_4.rows;
@@ -160,7 +160,6 @@ private:
         msg4->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_4.step);
         msg4->data.assign(frame_4.datastart, frame_4.dataend);
         publisher_->publish(std::move(msg4));
-        count_ += 4;
         if (count_ == 5000)
         {
             std::cout << "Stopping timer" << std::endl;
