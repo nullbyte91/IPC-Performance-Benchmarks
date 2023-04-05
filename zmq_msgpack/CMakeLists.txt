@@ -16,3 +16,9 @@ target_link_libraries(zmq_publisher pthread cppzmq ${OpenCV_LIBS})
 
 add_executable(zmq_subscriber zmq_subscriber.cpp)
 target_link_libraries(zmq_subscriber pthread cppzmq ${OpenCV_LIBS})
+
+add_executable(zmq_pc_publisher zmq_pc_publisher.cpp)
+target_link_libraries(zmq_pc_publisher pthread cppzmq ${OpenCV_LIBS})
+
+add_executable(zmq_pc_subscriber zmq_pc_subscriber.cpp)
+target_link_libraries(zmq_pc_subscriber pthread cppzmq ${OpenCV_LIBS})
