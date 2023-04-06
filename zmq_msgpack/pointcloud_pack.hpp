@@ -2,6 +2,13 @@
 
 #include "msgpack.hpp"
 
+struct PointCloudData {
+  std::vector<float> points;
+  uint32_t width;
+  uint32_t height;
+  bool is_dense;
+};
+
 namespace msgpack {
   MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
     namespace adaptor {

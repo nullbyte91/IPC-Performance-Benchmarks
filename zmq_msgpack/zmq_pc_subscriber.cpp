@@ -2,15 +2,8 @@
 #include <vector>
 #include <zmq.hpp>
 #include <msgpack.hpp>
-#include <sensor_msgs/msg/point_cloud2.hpp>
-#include <sensor_msgs/point_cloud2_iterator.hpp>
 
-struct PointCloudData {
-  std::vector<float> points;
-  uint32_t width;
-  uint32_t height;
-  bool is_dense;
-};
+#include "pointcloud_pack.hpp"
 
 int main() {
   int global_count{0};
