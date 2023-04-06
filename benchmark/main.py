@@ -12,6 +12,9 @@ class SystemLogger:
         self.duration = args.duration
         self.interval = args.interval
         self.pr = psutil.Process(self.pid)
+        self.sample_cycle = 0
+        self.avg_cpu_time = 0
+        self.avg_real_mem = 0
         self.logFormat()
         
     def logFormat(self):
@@ -75,6 +78,10 @@ class SystemLogger:
                 self.log['cpu'].append(current_cpu)
                 self.log['mem_real'].append(current_mem_real)
                 self.log['mem_virtual'].append(current_mem_virtual)
+                
+                self.avg_cpu_time += current_cpu
+                self.avg_real_mem += current_mem_real
+                self.sample_cycle += 1
         except KeyboardInterrupt:  # pragma: no cover
             pass
 
@@ -93,6 +100,9 @@ class SystemLogger:
             fig.savefig(self.plot)
 
         self.file.close()
+        
+        print("Average CPU Time:{} Average Memory:{} in MB".format((self.avg_cpu_time/self.sample_cycle), 
+                                                                    (self.avg_real_mem/self.sample_cycle)))
     @staticmethod
     def build_argparser():
         parser = ArgumentParser(add_help=False)
