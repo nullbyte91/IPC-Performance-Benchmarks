@@ -17,15 +17,12 @@ find_path(REDIS_PLUS_PLUS_HEADER sw)
 find_package(msgpack REQUIRED)
 
 # Add source files
-set(SOURCES
-    redis_publisher.cpp
-    redis_subscriber.cpp
-)
+function(build_executable target_name source_name)
+  add_executable(${target_name} ${source_name})
+  target_link_libraries(${target_name} ${REDIS_PLUS_PLUS_LIB} ${OpenCV_LIBS} -lhiredis -lredis++ -pthread)
+endfunction()
 
-# Build publisher executable
-add_executable(redis_publisher redis_publisher.cpp)
-target_link_libraries(redis_publisher ${REDIS_PLUS_PLUS_LIB} ${OpenCV_LIBS} -lhiredis -lredis++ -pthread)
-
-# Build subscriber executable
-add_executable(redis_subscriber redis_subscriber.cpp)
-target_link_libraries(redis_subscriber ${REDIS_PLUS_PLUS_LIB} ${OpenCV_LIBS} -lhiredis -lredis++ -pthread)
+build_executable(redis_publisher redis_publisher.cpp)
+build_executable(redis_subscriber redis_subscriber.cpp)
+build_executable(redis_pc_publisher redis_pc_publisher.cpp)
+build_executable(redis_pc_subscriber redis_pc_subscriber.cpp)

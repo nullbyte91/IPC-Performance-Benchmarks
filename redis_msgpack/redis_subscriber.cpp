@@ -35,7 +35,7 @@ int main() {
 
     // Subscribe to the Redis channel
     redisReply *reply = (redisReply *)redisCommand(c, "SUBSCRIBE image_channel");
-    freeReplyObject(reply);
+    //freeReplyObject(reply);
 
     // Listen for messages from the Redis channel
     while (redisGetReply(c, (void **)&reply) == REDIS_OK) {
