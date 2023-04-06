@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-3c5080f4e37d512bb813e49c828cfd8e image.pb.h

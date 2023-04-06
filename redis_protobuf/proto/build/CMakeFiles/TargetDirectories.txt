@@ -1,3 +1,0 @@
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/redis_protobuf/proto/build/CMakeFiles/proto.dir
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/redis_protobuf/proto/build/CMakeFiles/edit_cache.dir
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/redis_protobuf/proto/build/CMakeFiles/rebuild_cache.dir
