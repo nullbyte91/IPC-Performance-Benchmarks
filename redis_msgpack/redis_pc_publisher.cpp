@@ -3,6 +3,9 @@
 #include <hiredis/hiredis.h>
 #include <random>
 #include <vector>
+#include <unistd.h>
+
+#define MSG_SIZE_TEST 10000
 
 struct PointCloudData {
   std::vector<float> points;
@@ -13,6 +16,8 @@ struct PointCloudData {
 };
 
 int main() {
+
+  sleep(10);
   // Connect to the Redis server
   redisContext* c = redisConnect("127.0.0.1", 6379);
 
@@ -63,7 +68,7 @@ int main() {
     }
 
     // Terminate the loop after 2000 iterations
-    if (global_count == 2000) {
+    if (global_count == MSG_SIZE_TEST) {
         break;
     }
     freeReplyObject(reply);
