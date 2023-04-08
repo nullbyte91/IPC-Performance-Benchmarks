@@ -19,6 +19,7 @@
 
 #include "policy_map.hpp"
 
+#define MSG_SIZE_TEST 10000
 using namespace std::chrono_literals;
 
 // ROS2 std_msg types
@@ -52,7 +53,7 @@ public:
     PublisherNode(const std::string& topic)
         : Node("PublisherNode")
     {
-        auto history = name_to_history_policy_map.find("keep_last");
+        auto history = name_to_history_policy_map.find("Keep all");
         history_policy_ = history->second;
         auto reliability = name_to_reliability_policy_map.find("reliable");
         reliability_policy_ = reliability->second;
@@ -76,7 +77,7 @@ private:
     // ROS Parameter
     rmw_qos_reliability_policy_t reliability_policy_;
     rmw_qos_history_policy_t history_policy_;
-    size_t depth_ = 1000;
+    size_t depth_ = 2000;
     size_t count_ = 0;
     typename rclcpp::Publisher<T>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -160,7 +161,7 @@ private:
         msg4->step = static_cast<sensor_msgs::msg::Image::_step_type>(frame_4.step);
         msg4->data.assign(frame_4.datastart, frame_4.dataend);
         publisher_->publish(std::move(msg4));
-        if (count_ == 5000)
+        if (count_ == MSG_SIZE_TEST)
         {
             std::cout << "Stopping timer" << std::endl;
             timer_->cancel();
@@ -195,7 +196,7 @@ private:
         RCLCPP_INFO(this->get_logger(), "Publishing point cloud with %d points", pointcloud.width);
         publisher_->publish(std::move(pointcloud));        
         count_ += 1;
-        if (count_ == 5000)
+        if (count_ == MSG_SIZE_TEST)
         {
             std::cout << "Stopping timer" << std::endl;
             timer_->cancel();            
