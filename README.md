@@ -123,11 +123,13 @@ python3 main.py --pid {process_ID} --log IPC_SUB_logfile --plot IPC_SUB.png --du
 Publisher | Subscriber
 :-----: | :------:
 redis_msgpack
-![image info](./benchmark/redis_msgpack_PUB.png) | ![image info](./benchmark/redis_msgpack_SUB.png)
+![image info](./benchmark/Redis_msgpack_PUB_IMAGE.png) | ![image info](./benchmark/Redis_msgpack_SUB_IMAGE.png)
 redis_protobuf
 ![image info](./benchmark/redis_protobuf_PUB.png) | ![image info](./benchmark/redis_protobuf_SUB.png)
-ROS2
-![image info](./benchmark/ROS_PUB.png) | ![image info](./benchmark/ROS_SUB.png)
+ROS2 - Point Cloud
+![image info](./benchmark/ROS2_PUB_PC.png) | ![image info](./benchmark/ROS2_SUB_PC.png)
+ROS2 - Image
+![image info](./benchmark/IPC_ROS2_IMAGE.png) | ![image info](./benchmark/ROS2_SUB_IMAGE.png)
 zeromq
 ![image info](./benchmark/zmq_PUB.png) | ![image info](./benchmark/zmq_SUB.png)
 
@@ -142,21 +144,46 @@ zeromq
 | socket  | c++  | Not tested|
 
 
-|Middlware/Message | Throughput(msgs/sec)  |  Latency(ms) | CPU Usage(%)  | Memory Usage(MB)  | Licensing  | Community  |
+|Middlware/Message | Data Type | Type|Throughput(msgs/sec) | CPU Usage(%)  | Memory Usage(MB)  | Licensing  |
 |---|---|---|---|---|---|---|
+|ROS2   | Point cloud - 16K   | Publisher |10000/14 = 714| 99  | 43  |   |   |
+|   |   | Subscriber  |   | 4  | 21  |   |
+|   | Image  |  Publisher | 10000/26 = 384  | 99  | 4787  |   |
+|   |   | Subscriber  |   | 46  |  290 |   |
+|Redis -Msgpack   | Image  | Publisher  | 10000/142  = 70 | 55  | 54  |   |
+|   |   | Subscriber  |   | 27  |  25 |   |
 |   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
-|   |   |   |   |   |   |   |
+
+Note: Redis Mspack Pointcloud passing has some issue.
+
 ## Installation
 ```bash
 # Install msgpack
 sudo apt-get install libmsgpack-dev 
 ```
+### Redis and Redis C++
+```bash
+sudo apt install redis-server
+sudo systemctl status redis-server
+sudo apt install redis-tools
 
+# Test redis server by ping
+redis-cli ping # PONG output
+
+git clone https://github.com/redis/hiredis.git
+cd hiredis/
+mkdir build && cd build/
+cmake ..
+sudo make install
+
+git clone https://github.com/sewenew/redis-plus-plus.git
+cd redis-plus-plus/
+mkdir build && cd build/
+cmake ..
+sudo make install
+
+sudo ldconfig
+```
 ### zeroMQ and cppzmq
 ```bash
 # Install libzmq
