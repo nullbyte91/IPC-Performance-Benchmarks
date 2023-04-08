@@ -65,10 +65,8 @@ public:
         depth_
         ));
         qos.reliability(reliability_policy_);
-
-
         publisher_ = this->create_publisher<T>(topic, qos);
-        timer_ = this->create_wall_timer(30ns, [this]() {
+        timer_ = this->create_wall_timer(50ns, [this]() {
             publishMessage();
         });
     }
@@ -193,13 +191,13 @@ private:
         *iter_z = distribution(generator);
         }
 
-        RCLCPP_INFO(this->get_logger(), "Publishing point cloud with %d points", pointcloud.width);
+        RCLCPP_INFO(this->get_logger(), "%d : Publishing point cloud with %d points", count_++, pointcloud.width);
         publisher_->publish(std::move(pointcloud));        
-        count_ += 1;
         if (count_ == MSG_SIZE_TEST)
         {
             std::cout << "Stopping timer" << std::endl;
-            timer_->cancel();            
+            timer_->cancel(); 
+            exit(1);           
         }
     }
 };

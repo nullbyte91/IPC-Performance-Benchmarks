@@ -26,7 +26,7 @@ public:
     subscription_ = this->create_subscription<T>(topic, 1000,
         [this](const typename T::SharedPtr msg) {
           if (std::is_same<T, PointCloud>::value) {
-            RCLCPP_INFO(this->get_logger(), "Received point cloud with %d points", msg->width);
+            RCLCPP_INFO(this->get_logger(), "%d : Received point cloud with %d points", count_++, msg->width);
           }
         });
   }
