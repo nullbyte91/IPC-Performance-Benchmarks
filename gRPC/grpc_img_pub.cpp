@@ -50,7 +50,7 @@ private:
 };
 
 int main(int argc, char** argv) {
-    int count{0}, global_count{0};
+    int count{0};
 
     // Create example OpenCV matrices (images)
     cv::Mat frame_1 = cv::Mat::eye(480, 640, CV_8UC3);

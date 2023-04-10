@@ -51,77 +51,40 @@ else()
   endif()
 endif()
 
-get_filename_component(hw_proto "proto/image_transfer.proto" ABSOLUTE)
-get_filename_component(hw_proto_path "${hw_proto}" PATH)
-
-set(hw_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.pb.cc")
-set(hw_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.pb.h")
-set(hw_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.grpc.pb.cc")
-set(hw_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.grpc.pb.h")
-add_custom_command(
-      OUTPUT "${hw_proto_srcs}" "${hw_proto_hdrs}" "${hw_grpc_srcs}" "${hw_grpc_hdrs}"
-      COMMAND ${_PROTOBUF_PROTOC}
-      ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-        -I "${hw_proto_path}"
-        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
-        "${hw_proto}"
-      DEPENDS "${hw_proto}")
-
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
-# foreach(_target
-#   server client)
-#   add_executable(${_target} "${_target}.cpp"
-#     ${hw_proto_srcs}
-#     ${hw_grpc_srcs})
-#   target_link_libraries(${_target}
-#     ${_REFLECTION}
-#     ${_GRPC_GRPCPP}
-#     ${_PROTOBUF_LIBPROTOBUF}
-#     ${OpenCV_LIBS})
-# endforeach()
+function(generate_proto proto_name)
+  get_filename_component(proto "proto/${proto_name}.proto" ABSOLUTE)
+  get_filename_component(proto_path "${proto}" PATH)
 
-# get_filename_component(image_transfer_proto "proto/image_transfer.proto" ABSOLUTE)
-# get_filename_component(image_transfer_proto_path "${image_transfer_proto}" PATH)
+  set(proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.pb.cc")
+  set(proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.pb.h")
+  set(grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.grpc.pb.cc")
+  set(grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/${proto_name}.grpc.pb.h")
 
-# set(image_transfer_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.pb.cc")
-# set(image_transfer_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.pb.h")
-# set(image_transfer_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.grpc.pb.cc")
-# set(image_transfer_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/image_transfer.grpc.pb.h")
-# add_custom_command(
-#       OUTPUT "${image_transfer_proto_srcs}" "${image_transfer_proto_hdrs}" "${image_transfer_grpc_srcs}" "${image_transfer_grpc_hdrs}"
-#       COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-#       ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-#         --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-#         -I "${image_transfer_proto_path}"
-#         --plugin=protoc-gen-grpc="${gRPC_CPP_PLUGIN_EXECUTABLE}"
-#         "${image_transfer_proto}"
-#       DEPENDS "${image_transfer_proto}")
+  add_custom_command(
+        OUTPUT "${proto_srcs}" "${proto_hdrs}" "${grpc_srcs}" "${grpc_hdrs}"
+        COMMAND ${_PROTOBUF_PROTOC}
+        ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+          --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+          -I "${proto_path}"
+          --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+          "${proto}"
+        DEPENDS "${proto}")
 
-# # Point Cloud Proto
-# get_filename_component(point_cloud_proto "proto/point_cloud.proto" ABSOLUTE)
-# get_filename_component(point_cloud_proto_path "${point_cloud_proto}" PATH)
+  set(${proto_name}_PROTO_SRCS ${proto_srcs} ${grpc_srcs} PARENT_SCOPE)
+endfunction()
 
-# set(point_cloud_proto_srcs "${CMAKE_CURRENT_BINARY_DIR}/point_cloud.pb.cc")
-# set(point_cloud_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/point_cloud.pb.h")
-# set(point_cloud_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/point_cloud.grpc.pb.cc")
-# set(point_cloud_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/point_cloud.grpc.pb.h")
-# add_custom_command(
-#       OUTPUT "${point_cloud_proto_srcs}" "${point_cloud_proto_hdrs}" "${point_cloud_grpc_srcs}" "${point_cloud_grpc_hdrs}"
-#       COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-#       ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-#         --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-#         -I "${point_cloud_proto_path}"
-#         --plugin=protoc-gen-grpc="${gRPC_CPP_PLUGIN_EXECUTABLE}"
-#         "${point_cloud_proto}"
-#       DEPENDS "${point_cloud_proto}")
+generate_proto(image_transfer)
+generate_proto(point_cloud)
 
-function(build_executable target_name source_name)
-  add_executable(${target_name} ${source_name} ${hw_proto_srcs} ${hw_grpc_srcs})
+function(build_executable target_name source_name proto_name)
+  add_executable(${target_name} ${source_name} ${${proto_name}_PROTO_SRCS})
   target_link_libraries(${target_name} ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} ${OpenCV_LIBS})
 endfunction()
 
-build_executable(grpc_img_pub grpc_img_pub.cpp)
-build_executable(grpc_img_sub grpc_img_sub.cpp)
+build_executable(grpc_img_pub grpc_img_pub.cpp image_transfer)
+build_executable(grpc_img_sub grpc_img_sub.cpp image_transfer)
+build_executable(grpc_pc_pub grpc_pc_pub.cpp point_cloud)
+build_executable(grpc_pc_sub grpc_pc_sub.cpp point_cloud)
 

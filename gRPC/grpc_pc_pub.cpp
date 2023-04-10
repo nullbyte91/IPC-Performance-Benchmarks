@@ -1,5 +1,10 @@
+#include <iostream>
+#include <random>
+#include <vector>
 #include <grpcpp/grpcpp.h>
-#include "point_cloud_transfer.grpc.pb.h"
+#include "point_cloud.grpc.pb.h"
+
+#define MSG_SIZE_TEST 10000
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -10,62 +15,74 @@ using point_cloud_transfer::Response;
 
 class PointCloudTransferClient {
 public:
-    PointCloudTransferClient(std::shared_ptr<Channel> channel) : stub_(PointCloudTransfer::NewStub(channel)) {}
+    int global_count{0};
+    PointCloudTransferClient(std::shared_ptr<Channel> channel) : stub_(PointCloudTransfer::NewStub(channel)) 
+    { 
+    }
 
-    std::string SendPointCloud(const PointCloudData& point_cloud_data) {
+    std::string SendPointCloud(uint32_t width, uint32_t height, 
+                    bool is_dense, std::vector<float> pointCloudPoints) {
         PointCloud request;
         // Set point cloud data in the request
-        for (float point : point_cloud_data.points) {
+        for (float point : pointCloudPoints) {
             request.add_points(point);
         }
-        request.set_width(point_cloud_data.width);
-        request.set_height(point_cloud_data.height);
-        request.set_is_dense(point_cloud_data.is_dense);
+
+        request.set_width(width);
+        request.set_height(height);
+        request.set_is_dense(is_dense);
+
 
         Response response;
         ClientContext context;
 
         // Call the RPC and store its response and status
+        std::cout << "Sending point cloud data to the server..." << std::endl;
         Status status = stub_->SendPointCloud(&context, request, &response);
+        std::cout << "Received response from the server." << std::endl;
 
         // If the status is OK, return the response message; otherwise, return an error message
         if (status.ok()) {
+            std::cout << "Publish Pointcloud : " <<  global_count++ << std::endl;
             return response.message();
-                } else {
+        } else {
             std::cout << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
             return "Error";
         }
     }
 
 private:
-        std::unique_ptr<PointCloudTransfer::Stub> stub_;
-    };
-
-    struct PointCloudData {
-        std::vector<float> points;
-        uint32_t width;
-        uint32_t height;
-        bool is_dense;
-    };
+    std::unique_ptr<PointCloudTransfer::Stub> stub_;
+};
 
 int main(int argc, char** argv) {
+    int global_count{0};
+    uint32_t width = 16000;
+    uint32_t height = 1;
+    bool is_dense = false;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<float> distribution(-1.0, 1.0);
+
     std::string server_address("0.0.0.0:50051");
 
     // Create a client object with the specified server address
+    std::cout << "Connecting to server at: " << server_address << std::endl;
     PointCloudTransferClient client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
 
-    // Create example PointCloudData
-    PointCloudData point_cloud_data;
-    point_cloud_data.points = {1.0, 2.0, 3.0, 4.0, 5.0}; // Fill in with actual data
-    point_cloud_data.width = 16000;
-    point_cloud_data.height = 1;
-    point_cloud_data.is_dense = true;
+    std::vector<float> pointCloudPoints_(width * height * 3);
+    for (size_t i = 0; i < width * height * 3; i++) 
+        pointCloudPoints_[i] = distribution(generator);   
 
-    // Send the PointCloudData to the server and receive the response
-    std::string response = client.SendPointCloud(point_cloud_data);
-
-    std::cout << "Server response: " << response << std::endl;
-
-    return 0;
+    while (true)
+    {
+        // Send the PointCloudData to the server and receive the response
+        std::string response = client.SendPointCloud(width, height, is_dense, pointCloudPoints_);
+        std::cout << "Server response: " << response << std::endl;
+        
+        if (client.global_count == MSG_SIZE_TEST)
+        {
+            return EXIT_SUCCESS;
+        }
+    }
+    return EXIT_SUCCESS;
 }
-

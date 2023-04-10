@@ -1,70 +1,43 @@
 #include <grpcpp/grpcpp.h>
-#include "point_cloud_transfer.grpc.pb.h"
+#include "point_cloud.grpc.pb.h"
 
-using grpc::Channel;
-using grpc::ClientContext;
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
 using grpc::Status;
 using point_cloud_transfer::PointCloud;
 using point_cloud_transfer::PointCloudTransfer;
 using point_cloud_transfer::Response;
 
-class PointCloudTransferClient {
-public:
-    PointCloudTransferClient(std::shared_ptr<Channel> channel) : stub_(PointCloudTransfer::NewStub(channel)) {}
+class PointCloudTransferServiceImpl final : public PointCloudTransfer::Service {
+    Status SendPointCloud(ServerContext* context, const PointCloud* request, Response* response) override {
+        // Process the PointCloud data
+        std::cout << "Received PointCloud: " << request->width() << " * " << request->height() << " : " << global_count++ << std::endl;
 
-    std::string SendPointCloud(const PointCloudData& point_cloud_data) {
-        PointCloud request;
-        // Set point cloud data in the request
-        for (float point : point_cloud_data.points) {
-            request.add_points(point);
-        }
-        request.set_width(point_cloud_data.width);
-        request.set_height(point_cloud_data.height);
-        request.set_is_dense(point_cloud_data.is_dense);
+        // Set the response message
+        response->set_message("PointCloud received successfully.");
 
-        Response response;
-        ClientContext context;
-
-        // Call the RPC and store its response and status
-        Status status = stub_->SendPointCloud(&context, request, &response);
-
-        // If the status is OK, return the response message; otherwise, return an error message
-        if (status.ok()) {
-            return response.message();
-        } else {
-            std::cout << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
-            return "Error";
-        }
+        // Return an OK status
+        return Status::OK;
     }
-
-private:
-    std::unique_ptr<PointCloudTransfer::Stub> stub_;
+    private:
+        int global_count{0};
 };
 
-struct PointCloudData {
-    std::vector<float> points;
-    uint32_t width;
-    uint32_t height;
-    bool is_dense;
-};
+void RunServer() {
+    std::string server_address("0.0.0.0:50051");
+    PointCloudTransferServiceImpl service;
+
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::cout << "Server listening on " << server_address << std::endl;
+
+    server->Wait();
+}
 
 int main(int argc, char** argv) {
-    std::string server_address("0.0.0.0:50051");
-
-    // Create a client object with the specified server address
-    PointCloudTransferClient client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
-
-    // Create example PointCloudData
-    PointCloudData point_cloud_data;
-    point_cloud_data.points = {1.0, 2.0, 3.0, 4.0, 5.0}; // Fill in with actual data
-    point_cloud_data.width = 16000;
-    point_cloud_data.height = 1;
-    point_cloud_data.is_dense = true;
-
-    // Send the PointCloudData to the server and receive the response
-    std::string response = client.SendPointCloud(point_cloud_data);
-
-    std::cout << "Server response: " << response << std::endl;
-
+    RunServer();
     return 0;
 }
