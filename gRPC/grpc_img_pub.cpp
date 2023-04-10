@@ -12,9 +12,11 @@ using image_transfer::ImageRequest;
 using image_transfer::ImageResponse;
 
 #define SERVER_ADDRESS "0.0.0.0:50051"
+#define MSG_SIZE_TEST 10000
 
 class ImageTransferClient {
 public:
+    int global_count{0};
     ImageTransferClient(std::shared_ptr<Channel> channel) : stub_(ImageTransfer::NewStub(channel)) {}
 
     // SendImage function sends the cv::Mat image to the server
@@ -31,14 +33,16 @@ public:
 
         // Call the RPC and store its response and status
         Status status = stub_->SendImage(&context, request, &response);
-
+        
         // If the status is OK, return the response message; otherwise, return an error message
         if (status.ok()) {
+            std::cout << "Publish Image : " << img.rows << " * " << img.cols << ": " <<  global_count++ << std::endl;
             return response.message();
         } else {
             std::cout << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
             return "Error";
         }
+
     }
 
 private:
@@ -82,9 +86,12 @@ int main(int argc, char** argv) {
         // Send the current image to the server and receive the response
         std::string response = client.SendImage(frame); 
 
+        if (client.global_count == MSG_SIZE_TEST)
+        {
+            return EXIT_SUCCESS;
+        }
         // To Do
         // Convert the string response to StatusCode
-
     }
-    return 0;
+    return EXIT_SUCCESS;
 }

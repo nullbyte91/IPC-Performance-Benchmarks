@@ -161,6 +161,23 @@ Note: Redis Mspack Pointcloud passing has some issue.
 # Install msgpack
 sudo apt-get install libmsgpack-dev 
 ```
+
+### gRPC
+```bash
+git clone --recurse-submodules -b v1.53.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+cd grpc
+mkdir -p cmake/build
+pushd cmake/build
+cmake -DgRPC_INSTALL=ON \
+      -DgRPC_BUILD_TESTS=OFF \
+      ../..
+make -j 4
+sudo make install
+$ popd
+
+# Compilation use C++ 14
+cmake -DCMAKE_CXX_STANDARD=14 ..
+```
 ### Redis and Redis C++
 ```bash
 sudo apt install redis-server

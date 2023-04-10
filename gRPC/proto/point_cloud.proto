@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package point_cloud_transfer;
+
+message PointCloud {
+    repeated float points = 1;
+    uint32 width = 2;
+    uint32 height = 3;
+    bool is_dense = 4;
+}
+
+service PointCloudTransfer {
+    rpc SendPointCloud (PointCloud) returns (Response);
+}
+
+message Response {
+    string message = 1;
+}
