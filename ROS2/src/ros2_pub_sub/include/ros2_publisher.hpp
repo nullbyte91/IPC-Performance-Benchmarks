@@ -128,7 +128,6 @@ private:
         RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 480 * 640", count_++);
         auto msg0 = Image();
         timeMeasurement_.measure_time<void>(std::bind(&PublisherNode<T>::serialize_image_frame, this, std::ref(msg0), frame_0));
-        std::cout << msg0.img.header.frame_id << std::endl;
         publisher_->publish(std::move(msg0));
         
         RCLCPP_INFO(this->get_logger(), "%d : Publishing Image: 1280 * 960", count_++);
@@ -147,8 +146,8 @@ private:
         publisher_->publish(std::move(msg3));
         if (count_ == MSG_SIZE_TEST)
         {
-            double deser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST-1);
-            std::cout << "seralization Mean time: " << deser_time << std::endl;
+            double ser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST-1);
+            RCLCPP_INFO(this->get_logger(), "seralization Mean time: %lf ns", NS_TO_MS(ser_time));
             timer_->cancel();
         }
     }
@@ -162,8 +161,8 @@ private:
         RCLCPP_INFO(this->get_logger(), "%d : Publishing point cloud with %d points", count_++, pcl.pointcloud.width);
         if (count_ == MSG_SIZE_TEST)
         {
-            double deser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST-1);
-            std::cout << "seralization Mean time: " << deser_time << std::endl;
+            double ser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST-1);
+            RCLCPP_INFO(this->get_logger(), "seralization Mean time: %lf ns", NS_TO_MS(ser_time));
             timer_->cancel(); 
         }
     }
@@ -193,7 +192,6 @@ private:
     }
 
     void serialize_image_frame(custom_msg::msg::Image &msg, cv::Mat frame) {
-        std::cout << frame.type() << std::endl;
         msg.img.header.frame_id = "camera_frame";
         msg.img.height = frame.rows;
         msg.img.width = frame.cols;

@@ -133,7 +133,7 @@ ROS2 - Image
 zeromq
 ![image info](./benchmark/zmq_PUB.png) | ![image info](./benchmark/zmq_SUB.png)
 
-
+#### Benchmark - old table
 | IPC  | Implementation  | FPS|
 |---  |---              |----|
 | Redis MsgPack  | c++  | 5000 Frame/52 sec = 96|
@@ -144,15 +144,15 @@ zeromq
 | socket  | c++  | Not tested|
 
 
-|Middlware/Message | Data Type | Type|Throughput(msgs/sec) | CPU Usage(%)  | Memory Usage(MB)  | Licensing  |
-|---|---|---|---|---|---|---|
-|ROS2   | Point cloud - 16K   | Publisher |10000/14 = 714| 99  | 43  |   |   |
-|   |   | Subscriber  |   | 4  | 21  |   |
-|   | Image  |  Publisher | 10000/26 = 384  | 99  | 4787  |   |
-|   |   | Subscriber  |   | 46  |  290 |   |
-|Redis -Msgpack   | Image  | Publisher  | 10000/142  = 70 | 55  | 54  |   |
-|   |   | Subscriber  |   | 27  |  25 |   |
-|   |   |   |   |   |   |   |
+|Middlware/Message | Data Type | Type|Throughput(msgs/sec) | Latency(ns) | Ser/Deser(ns) |CPU Usage(%)  | Memory Usage(MB)  | Licensing  |
+|---|---|---|---|---|---|---|----|----|
+|ROS2   | Point cloud - 16K   | Publisher |10000/14 = 714| 0.152665 | 1.347477 |99  | 43  |   |   |
+|   |   | Subscriber  |   | |0.000163 | 4  | 21  |   |
+|   | Image  |  Publisher | 10000/26 = 384  | 1991 | 0.830270 |99  | 4787  |   | 
+|   |   | Subscriber  |   | | 0.00153| 46  |  290 |   | 
+|Redis -Msgpack   | Image  | Publisher  | 10000/142  = 70 | 16.4856 | 2.37887 | 55  | 54  |   |
+|   |   | Subscriber  |   | | 0.000613318 | 27  |  25 |   |
+|   |   |   |   |   |   |   | | |
 
 Note: Redis Mspack Pointcloud passing has some issue.
 

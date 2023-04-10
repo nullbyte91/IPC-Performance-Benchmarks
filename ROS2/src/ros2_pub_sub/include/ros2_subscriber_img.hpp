@@ -63,9 +63,9 @@ public:
     subscription_ = this->create_subscription<T>(topic, qos,
         [this](const typename T::SharedPtr msg) {
           if (exit_flag_) {
-            std::cout << "Latency: " << computeMeanLatency() << std::endl;
+            RCLCPP_INFO(this->get_logger(), "Latency: %lf ns", NS_TO_MS(computeMeanLatency()));
             double deser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST);
-            std::cout << "Deseralization Mean time: " << deser_time << std::endl;
+            RCLCPP_INFO(this->get_logger(), "Deseralization Mean time: %lf in ns", NS_TO_MS(deser_time));
             return;
           }
 
@@ -79,7 +79,7 @@ public:
           auto time_diff = current_chrono_time - chrono_time;
 
           // Convert the time difference to milliseconds.
-          time_diff_ms_ += std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
+          time_diff_ns_ += std::chrono::duration_cast<std::chrono::nanoseconds>(time_diff).count();
           
           // Measure the time taken for the deserialization operation
           frame_ = timeMeasurement_.measure_time<cv::Mat>(std::bind(&SubscriberNode<T>::deserialize_image, this, msg));
@@ -93,11 +93,11 @@ public:
   }
   double computeMeanLatency() const
   {
-      if (time_diff_ms_ == 0)
+      if (time_diff_ns_ == 0)
       {
           return 0.0;
       }
-      return static_cast<double>(time_diff_ms_) / count_;
+      return static_cast<double>(time_diff_ns_) / count_;
   }
 
   cv::Mat deserialize_image(const typename T::SharedPtr &msg) {
@@ -122,7 +122,7 @@ private:
   size_t msg_count_;
   std::atomic<bool> exit_flag_{false};
   double total_time_;
-  std::chrono::milliseconds::rep time_diff_ms_;
+  std::chrono::nanoseconds::rep time_diff_ns_;
   cv::Mat frame_;
   TimeMeasurement timeMeasurement_;
 };

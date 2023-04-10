@@ -6,6 +6,8 @@
 #include <chrono>
 #include <numeric>
 
+#define NS_TO_MS(ns) ((ns) / 1e6)
+
 class TimeMeasurement {
 public:
     std::vector<long long> time_measurements;
@@ -17,8 +19,8 @@ public:
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-        std::chrono::milliseconds duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-        time_measurements.push_back(duration_ms.count());
+        //std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+        time_measurements.push_back(duration.count());
         return result;
     }
 
@@ -40,6 +42,6 @@ auto TimeMeasurement::measure_time<void>(std::function<void()> operation) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
 
-    std::chrono::milliseconds duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-    time_measurements.push_back(duration_ms.count());
+    //std::chrono::milliseconds duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+    time_measurements.push_back(duration.count());
 }
