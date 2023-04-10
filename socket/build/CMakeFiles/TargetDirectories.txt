@@ -1,4 +1,0 @@
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/socket/build/CMakeFiles/socket_publisher.dir
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/socket/build/CMakeFiles/socket_subscriber.dir
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/socket/build/CMakeFiles/edit_cache.dir
-/home/nullbyte/Desktop/mygit/IPC-Performance-Metrics/socket/build/CMakeFiles/rebuild_cache.dir
