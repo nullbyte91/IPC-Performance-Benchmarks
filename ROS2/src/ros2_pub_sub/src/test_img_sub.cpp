@@ -8,7 +8,7 @@ int main(int argc, char * argv[])
   rclcpp::init(argc, argv);
 
   rclcpp::executors::SingleThreadedExecutor executor;
-  auto subscriber = std::make_shared<SubscriberNode<Image>>("image_topic");
+  auto subscriber = std::make_shared<SubscriberNode<custom_msg::msg::Image>>("image_topic");
   executor.add_node(subscriber);
   executor.spin();
 

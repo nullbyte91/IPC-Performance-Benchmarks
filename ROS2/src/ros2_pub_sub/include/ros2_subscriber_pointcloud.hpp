@@ -8,13 +8,12 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
+
 
 using String = std_msgs::msg::String;
 using Int32 = std_msgs::msg::Int32;
 using Float32 = std_msgs::msg::Float32;
-using Image = sensor_msgs::msg::Image;
-using PointCloud = sensor_msgs::msg::PointCloud2;
+using PointCloud = custom_msg::msg::PointCloud;
 
 template <typename T>
 class SubscriberNode : public rclcpp::Node
@@ -25,8 +24,12 @@ public:
   {
     subscription_ = this->create_subscription<T>(topic, 1000,
         [this](const typename T::SharedPtr msg) {
+          rclcpp::Time now = this->now();
+          rclcpp::Time sent_time = msg->time.stamp;
+          rclcpp::Duration latency = now - sent_time;
+          RCLCPP_INFO(this->get_logger(), "Latency: '%ld'", latency.nanoseconds());
           if (std::is_same<T, PointCloud>::value) {
-            RCLCPP_INFO(this->get_logger(), "%d : Received point cloud with %d points", count_++, msg->width);
+            RCLCPP_INFO(this->get_logger(), "%d : Received point cloud with %d points", count_++, msg->pointcloud.width);
           }
         });
   }

@@ -2,19 +2,28 @@
 #define ROS2_SUBSCRIBER_IMG_HPP
 
 #include <rclcpp/rclcpp.hpp>
-#include "sensor_msgs/msg/image.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include <atomic>
 
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "std_msgs/msg/string.hpp"
 
-#include "policy_map.hpp"
+#include "custom_msg/msg/image.hpp"
 
-using String = std_msgs::msg::String;
-using Int32 = std_msgs::msg::Int32;
-using Float32 = std_msgs::msg::Float32;
-using Image = sensor_msgs::msg::Image;
+#include "policy_map.hpp"
+#include "utils.hpp"
+
+#define MSG_SIZE_TEST 9000
+
+using Image = custom_msg::msg::Image;
+
+inline 
+std::chrono::high_resolution_clock::time_point to_chrono_time(const rclcpp::Time& rclcpp_time) {
+    auto nanoseconds = rclcpp_time.nanoseconds();
+    auto duration = std::chrono::nanoseconds(nanoseconds);
+    return std::chrono::high_resolution_clock::time_point(duration);
+}
 
 inline int
 encoding2mat_type(const std::string & encoding)
@@ -30,6 +39,7 @@ encoding2mat_type(const std::string & encoding)
   }
   throw std::runtime_error("Unsupported mat type");
 }
+
 template <typename T>
 class SubscriberNode : public rclcpp::Node
 {
@@ -38,7 +48,7 @@ public:
     : Node("SubscriberNode")
   {
 
-    auto history = name_to_history_policy_map.find("keep_last");
+    auto history = name_to_history_policy_map.find("Keep all");
     history_policy_ = history->second;
     auto reliability = name_to_reliability_policy_map.find("reliable");
     reliability_policy_ = reliability->second;
@@ -50,18 +60,56 @@ public:
     depth_
     ));
     qos.reliability(reliability_policy_);
-
     subscription_ = this->create_subscription<T>(topic, qos,
         [this](const typename T::SharedPtr msg) {
-          if (std::is_same<T, Image>::value) {
-            cv::Mat frame(
-            msg->height, msg->width,
-            encoding2mat_type(msg->encoding),
-            msg->data.data());
-            RCLCPP_INFO(this->get_logger(), "%d : Received Image %d %d", count_++, frame.rows,  frame.cols);
+          if (exit_flag_) {
+            std::cout << "Latency: " << computeMeanLatency() << std::endl;
+            double deser_time = timeMeasurement_.mean_time(MSG_SIZE_TEST);
+            std::cout << "Deseralization Mean time: " << deser_time << std::endl;
+            return;
           }
-        });
 
+          // Convert the rclcpp::Time to std::chrono::high_resolution_clock::time_point.
+          auto chrono_time = to_chrono_time(msg->time.stamp);
+
+          // Get the current time as std::chrono::high_resolution_clock::time_point.
+          auto current_chrono_time = std::chrono::high_resolution_clock::now();
+
+          // Compute the difference between the two time points.
+          auto time_diff = current_chrono_time - chrono_time;
+
+          // Convert the time difference to milliseconds.
+          time_diff_ms_ += std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
+          
+          // Measure the time taken for the deserialization operation
+          frame_ = timeMeasurement_.measure_time<cv::Mat>(std::bind(&SubscriberNode<T>::deserialize_image, this, msg));
+
+          RCLCPP_INFO(this->get_logger(), "%d : Received Image %d %d", count_++, frame_.rows,  frame_.cols);
+          if (count_ == MSG_SIZE_TEST)
+          {
+            exit_flag_ = true;
+          }
+        });    
+  }
+  double computeMeanLatency() const
+  {
+      if (time_diff_ms_ == 0)
+      {
+          return 0.0;
+      }
+      return static_cast<double>(time_diff_ms_) / count_;
+  }
+
+  cv::Mat deserialize_image(const typename T::SharedPtr &msg) {
+      cv::Mat frame(
+          msg->img.height, msg->img.width,
+          encoding2mat_type(msg->img.encoding),
+          msg->img.data.data());
+      return frame;
+  }
+  ~SubscriberNode()
+  {
+    std::cout << "destructor called" << std::endl;
   }
 private:
   // ROS Parameter
@@ -69,7 +117,14 @@ private:
   rmw_qos_history_policy_t history_policy_;
   size_t depth_ = 1000;
   typename rclcpp::Subscription<T>::SharedPtr subscription_;
+  rclcpp::TimerBase::SharedPtr timer_;
   size_t count_ = 0;
+  size_t msg_count_;
+  std::atomic<bool> exit_flag_{false};
+  double total_time_;
+  std::chrono::milliseconds::rep time_diff_ms_;
+  cv::Mat frame_;
+  TimeMeasurement timeMeasurement_;
 };
 
 #endif //ROS2_SUBSCRIBER_IMG_HPP

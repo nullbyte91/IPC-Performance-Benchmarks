@@ -8,10 +8,10 @@ int main(int argc, char * argv[])
   // Initialize the ROS2 communication
   rclcpp::init(argc, argv);
 
-  sleep(10);
+  //sleep(10);
 
   rclcpp::executors::SingleThreadedExecutor executor;
-  auto publisher = std::make_shared<PublisherNode<Image>>("image_topic");
+  auto publisher = std::make_shared<PublisherNode<custom_msg::msg::Image>>("image_topic");
   executor.add_node(publisher);
   executor.spin();
 

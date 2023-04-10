@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
   sleep(10);
 
   rclcpp::executors::SingleThreadedExecutor executor;
-  auto publisher = std::make_shared<PublisherNode<PointCloud>>("pointcloud_topic");
+  auto publisher = std::make_shared<PublisherNode<custom_msg::msg::PointCloud>>("pointcloud_topic");
   executor.add_node(publisher);
   executor.spin();
 

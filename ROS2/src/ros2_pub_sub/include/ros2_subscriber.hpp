@@ -12,7 +12,6 @@
 using String = std_msgs::msg::String;
 using Int32 = std_msgs::msg::Int32;
 using Float32 = std_msgs::msg::Float32;
-using Image = sensor_msgs::msg::Image;
 
 template <typename T>
 class SubscriberNode : public rclcpp::Node
