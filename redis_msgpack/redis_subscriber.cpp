@@ -11,7 +11,9 @@
 #include "utils.hpp"
 
 #define MSG_SIZE_TEST 9000
-  
+
+std::chrono::high_resolution_clock::time_point chrono_time;
+
 struct Image {
     std::vector<uchar> matrix;
     int rows{0};
@@ -66,7 +68,18 @@ public:
         }
     }
 
-    cv::Mat deserialize_image(Image &img_data) {
+    cv::Mat deserialize_image(redisReply* reply) {
+        msgpack::unpacked unpacked_data;
+        msgpack::unpack(unpacked_data, reply->element[2]->str, reply->element[2]->len);
+        Image img_data;
+
+        try {
+            img_data = unpacked_data.get().as<Image>();
+            chrono_time = img_data.timestamp;
+        } catch (const std::exception &e) {
+            std::cerr << "Error deserializing message: " << e.what() << std::endl;
+        }
+
         return cv::Mat(img_data.rows, img_data.cols, img_data.type, img_data.matrix.data());
     }
 
@@ -105,24 +118,15 @@ int main() {
 
         if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3 &&
             std::string(reply->element[0]->str) == "message") {
-            msgpack::unpacked unpacked_data;
-            msgpack::unpack(unpacked_data, reply->element[2]->str, reply->element[2]->len);
+            auto time_diff = current_chrono_time - chrono_time;
+            time_diff_ns_ += std::chrono::duration_cast<std::chrono::nanoseconds>(time_diff).count();
 
-            try {
-                Image img_data = unpacked_data.get().as<Image>();
-                auto chrono_time = img_data.timestamp;
-                auto time_diff = current_chrono_time - chrono_time;
-                time_diff_ns_ += std::chrono::duration_cast<std::chrono::nanoseconds>(time_diff).count();
+            cv::Mat frame = timeMeasurement_.measure_time<cv::Mat>(std::bind(&RedisImageSubscriber::deserialize_image, &subscriber, std::ref(reply)));
 
-                cv::Mat frame = timeMeasurement_.measure_time<cv::Mat>(std::bind(&RedisImageSubscriber::deserialize_image, &subscriber, img_data));
+            std::cout << "Received image: " << frame.rows << " * " << frame.cols << ": " << global_count++ << std::endl;
 
-                std::cout << "Received image: " << frame.rows << " * " << frame.cols << ": " << global_count++ << std::endl;
-
-                if (global_count == MSG_SIZE_TEST) {
-                    exit_flag_ = true;
-                }
-            } catch (const std::exception &e) {
-                std::cerr << "Error deserializing message: " << e.what() << std::endl;
+            if (global_count == MSG_SIZE_TEST) {
+                exit_flag_ = true;
             }
         }
 
