@@ -150,9 +150,10 @@ zeromq
 |   |   | Subscriber  |   | |0.000163 | 4  | 21  |   |
 |   | Image  |  Publisher | 10000/26 = 384  | 1991 | 0.830270 |99  | 4787  |   | 
 |   |   | Subscriber  |   | | 0.00153| 46  |  290 |   | 
-|Redis -Msgpack   | Image  | Publisher  | 10000/142  = 70 | 16.4856 | 2.37887 | 55  | 54  |   |
-|   |   | Subscriber  |   | | 0.000613318 | 27  |  25 |   |
-|   |   |   |   |   |   |   | | |
+|Redis -Msgpack   | Image  | Publisher  | 10000/142  = 70 | 16.4856 | 2.33652 | 55  | 54  |   |
+|   |   | Subscriber  |   | | 2.74652| 27  |  25 |   |
+|Redis - Protobuf  | Image  | Publisher  | 10000/121 = 82 |  | 3.96685   |   | | |
+|   |   | Subscriber  |   | | 3.27797|   |   |   |
 
 Note: Redis Mspack Pointcloud passing has some issue.
 
