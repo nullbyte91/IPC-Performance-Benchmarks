@@ -8,5 +8,6 @@ message Image {
     int32 elt_type = 3;
     int32 elt_size = 4;
     bytes mat_data = 5;
+    int64 timestamp = 6; // Added timestamp field
 }
 
