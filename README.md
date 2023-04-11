@@ -1,10 +1,22 @@
 # IPC Performance Benchmarks
-This repository is designed to evaluate the performance of various IPC techniques for transferring image data between a publisher and subscriber. It contains a series of tests that measure the efficiency and resource utilization of different IPC methods, making it easy for you to determine which one best suits your needs.
+This repository is designed to evaluate the performance of various IPC techniques for transferring image and point cloud data between a publisher and subscriber. It contains a series of tests that measure the efficiency, resource utilization, latency, throughput, and serialization/deserialization time of different IPC methods, making it easy for you to determine which one best suits your needs.
 
 ## Overview
-In this repository, I tested several IPC techniques for transporting image data across processes. The benchmarking suite evaluates each method using images of varying sizes: [480, 640], [1280, 960], [1800, 1200], and [2100, 1500]. For each test, measure the CPU and memory utilization to provide a comprehensive assessment of the method's performance.
+In this repository, we test several IPC techniques for transporting image and point cloud data across processes. The benchmarking suite evaluates each method using images of varying sizes: [480, 640], [1280, 960], [1800, 1200], and [2100, 1500], and point cloud data with 16k points in a single row. For each test, we measure the CPU and memory utilization, latency, throughput, and serialization/deserialization time to provide a comprehensive assessment of the method's performance.
 
-The primary goal of this repository is to assist developers in choosing the most suitable IPC method for their image transportation needs.
+The primary goal of this repository is to assist developers in choosing the most suitable IPC method for their image and point cloud data transportation needs.
+
+## Updates
+* Added point cloud data benchmarking (16k points in a single row)
+* Included latency, throughput, and serialization/deserialization time measurement
+
+## Benchmarking Metrics
+1. CPU Utilization
+2. Memory Utilization
+3. Latency
+4. Throughput
+5. Serialization time
+6. Deserialization time
 
 ## CPU Core Isolation for Accurate Benchmarking
 CPU cores are often shared by multiple processes and threads, which can lead to interference and fluctuations in performance. Isolating CPU cores ensures that the benchmarking process runs on a dedicated core without interruptions from other processes. This provides a stable and controlled environment for accurate measurements.
