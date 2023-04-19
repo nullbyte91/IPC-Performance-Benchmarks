@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(zmq_msgpack)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 find_package(cppzmq REQUIRED)
 find_package(OpenCV REQUIRED core imgproc video highgui calib3d imgcodecs) 
