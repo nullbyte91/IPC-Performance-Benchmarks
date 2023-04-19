@@ -11,6 +11,7 @@ message ImageRequest {
     int32 width = 2;
     int32 height = 3;
     int32 type = 4;
+    int64 timestamp = 5;
 }
 
 message ImageResponse {

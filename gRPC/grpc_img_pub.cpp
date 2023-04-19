@@ -4,6 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <fstream>
 
+#include "utils.hpp"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -12,7 +14,7 @@ using image_transfer::ImageRequest;
 using image_transfer::ImageResponse;
 
 #define SERVER_ADDRESS "0.0.0.0:50051"
-#define MSG_SIZE_TEST 10000
+#define MSG_SIZE_TEST 11000
 
 class ImageTransferClient {
 public:
@@ -22,14 +24,11 @@ public:
     // SendImage function sends the cv::Mat image to the server
     std::string SendImage(const cv::Mat& img) {
         ImageRequest request;
-        // Set image data, width, height, and type in the request
-        request.set_image_data(img.data, img.total() * img.elemSize());
-        request.set_width(img.cols);
-        request.set_height(img.rows);
-        request.set_type(img.type());
-
         ImageResponse response;
         ClientContext context;
+
+        // Measure the time taken to serialize the image frame
+        timeMeasurement_.measure_time<void>(std::bind(&ImageTransferClient::serialize_image_frame, this, std::ref(request), std::ref(img)));
 
         // Call the RPC and store its response and status
         Status status = stub_->SendImage(&context, request, &response);
@@ -42,11 +41,26 @@ public:
             std::cout << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
             return "Error";
         }
+    }
 
+    // Calculate and return the mean serialization time
+    double mean_serialization_time(int num_messages) {
+        return timeMeasurement_.mean_time(num_messages);
     }
 
 private:
     std::unique_ptr<ImageTransfer::Stub> stub_;
+    TimeMeasurement timeMeasurement_;
+
+    // Serialize the image frame and populate the ImageRequest object
+    void serialize_image_frame(image_transfer::ImageRequest &request, cv::Mat img) {
+        // Set image data, width, height, and type in the request
+        request.set_image_data(img.data, img.total() * img.elemSize());
+        request.set_width(img.cols);
+        request.set_height(img.rows);
+        request.set_type(img.type());
+        request.set_timestamp(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());       
+    }
 };
 
 int main(int argc, char** argv) {
@@ -88,7 +102,10 @@ int main(int argc, char** argv) {
 
         if (client.global_count == MSG_SIZE_TEST)
         {
-            return EXIT_SUCCESS;
+            std::cout << "* help ** " << std::endl;
+            double ser_time = client.mean_serialization_time(MSG_SIZE_TEST - 1);
+            std::cout << "Serialization Mean time: " << NS_TO_MS(ser_time) << " ms" << std::endl;
+            sleep(10);
         }
         // To Do
         // Convert the string response to StatusCode
