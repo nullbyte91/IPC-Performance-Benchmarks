@@ -21,7 +21,8 @@ struct Image {
   int rows = 0;
   int cols = 0;
   int type = 0;
-  MSGPACK_DEFINE(matrix, rows, cols, type);
+  std::chrono::high_resolution_clock::time_point timestamp;
+  MSGPACK_DEFINE(matrix, rows, cols, type, timestamp);
 };
 
 #endif  //IMAGE_HPP
