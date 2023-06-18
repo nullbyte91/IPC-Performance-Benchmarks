@@ -163,6 +163,8 @@ zeromq
 |   |   | Subscriber  |   | |22.5728|  51 |  23 |   |
 |zmq -Msgpack | Image  | Publisher  | 10000/45 = 222 | 3.11884 | 2.83907   | 84  | 41| |
 |   |   | Subscriber  |   | |0.893189|  30 |  30 |   |
+|MQTT | Image  | Publisher  | 10000/81 = 123 | |    |   | | |
+|   |   | Subscriber  |   | ||   |   |   |
 
 Note: Redis Mspack Pointcloud passing has some issue.
 
@@ -275,6 +277,43 @@ sudo make install
 ```bash
 # CORBA
 omniidl -bcxx ImageTransfer.idl
+```
+
+# MQTT
+```bash
+#  Install Mosquitto:
+sudo apt-get install mosquitto mosquitto-clients
+
+# First, install the required dependencies
+sudo apt-get install build-essential gcc make cmake cmake-gui cmake-curses-gui libssl-dev
+
+# Clone the Paho MQTT C library
+git clone https://github.com/eclipse/paho.mqtt.c.git
+
+# Go into the directory
+cd paho.mqtt.c
+
+# Make a build directory and navigate into it
+mkdir build
+cd build
+
+# Use CMake to prepare the GNU Make build. If you want to disable SSL, remove the "-DPAHO_WITH_SSL=TRUE"
+cmake -DPAHO_WITH_SSL=TRUE -DPAHO_BUILD_DOCUMENTATION=TRUE -DPAHO_BUILD_SAMPLES=TRUE ..
+
+# Build the library
+make
+
+# If you want to test the build, use
+# make test
+
+# Install the library
+sudo make install
+
+git clone https://github.com/eclipse/paho.mqtt.cpp
+cd paho.mqtt.cpp
+cmake -Bbuild -H. -DPAHO_BUILD_DOCUMENTATION=FALSE -DPAHO_BUILD_SAMPLES=TRUE -DPAHO_MQTT_C_PATH=../../paho.mqtt.c
+sudo cmake --build build/ --target install
+sudo ldconfig
 ```
 ## License
 This repository is released under the MIT License.
